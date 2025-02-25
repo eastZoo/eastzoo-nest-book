@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  InternalServerErrorException,
   Logger,
   Post,
   Res,
@@ -13,6 +12,7 @@ import { Response } from 'express';
 
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import * as jwt from 'jsonwebtoken';
+import { responseObj } from 'src/util/responseObj';
 
 // 인증 관련 엔드포인트를 처리하는 컨트롤러
 @Controller('auth')
@@ -67,9 +67,9 @@ export class AuthController {
   ) {
     try {
       if (!body.email || !body.password) {
-        throw new UnauthorizedException(
-          '이메일과 비밀번호를 모두 입력해주세요.',
-        );
+        return res
+          .status(400)
+          .json(responseObj.fail('이메일과 비밀번호를 모두 입력해주세요.'));
       }
 
       const { accessToken, refreshToken } = await this.authService.login(
@@ -85,16 +85,20 @@ export class AuthController {
         maxAge: Number(process.env.JWT_REFRESH_EXPIRES), // 7일 유효기간
       });
 
-      // Access Token만 응답 본문에 포함하여 반환
-      res.send({ accessToken });
+      // 성공 응답 반환
+      return res.json(responseObj.success({ accessToken }, '로그인 성공'));
     } catch (error) {
-      console.log(error);
+      console.error('🚨 로그인 실패:', error);
+
       if (error instanceof UnauthorizedException) {
-        throw error;
+        return res
+          .status(401)
+          .json(responseObj.fail('이메일 또는 비밀번호가 올바르지 않습니다.'));
       }
-      throw new InternalServerErrorException(
-        '로그인 처리 중 오류가 발생했습니다.',
-      );
+
+      return res
+        .status(500)
+        .json(responseObj.fail('로그인 처리 중 오류가 발생했습니다.'));
     }
   }
 

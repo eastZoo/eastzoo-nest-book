@@ -24,7 +24,7 @@ export class AuthService {
     const user = await this.userService.findByEmail(email);
     // 사용자가 없거나 비밀번호가 일치하지 않으면 예외 발생
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     // Access Token 생성 (15분 유효)
