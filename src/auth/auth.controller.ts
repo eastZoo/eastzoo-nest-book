@@ -78,12 +78,16 @@ export class AuthController {
       );
 
       // Refresh Token을 보안 쿠키로 설정
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        maxAge: Number(process.env.JWT_REFRESH_EXPIRES), // 7일 유효기간
-      });
+      res.cookie(
+        `${process.env.REFRESH_TOKEN_NAME}-refresh-token`,
+        refreshToken,
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: Number(process.env.JWT_REFRESH_EXPIRES), // 7일 유효기간
+        },
+      );
 
       // 성공 응답 반환
       return res.json(responseObj.success({ accessToken }, '로그인 성공'));
