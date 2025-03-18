@@ -6,6 +6,12 @@ import { Users } from 'src/entities/users.entity';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
+export type Payload = {
+  id: number;
+  email: string;
+  userGroup: string;
+};
+
 // Injectable 데코레이터를 사용하여 이 클래스가 NestJS의 의존성 주입 시스템에서 사용될 수 있음을 표시
 @Injectable()
 export class AuthService {
@@ -19,7 +25,11 @@ export class AuthService {
   async login(
     email: string,
     password: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    payload: Payload;
+  }> {
     // 이메일로 사용자 찾기
     const user = await this.userService.findByEmail(email);
     // 사용자가 없거나 비밀번호가 일치하지 않으면 예외 발생
@@ -27,16 +37,23 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // 토큰 페이로드 생성
+    const payload = {
+      id: user.id,
+      email: user.email,
+      userGroup: user.userGroup,
+    };
+
     // Access Token 생성 (15분 유효)
-    const accessToken = this.createAccessToken({ userId: user.id });
+    const accessToken = this.createAccessToken(payload);
     // Refresh Token 생성 (7일 유효)
-    const refreshToken = this.createRefreshToken({ userId: user.id });
+    const refreshToken = this.createRefreshToken(payload);
 
     // 생성된 Refresh Token을 데이터베이스에 저장
     await this.userService.updateRefreshToken(user.id, refreshToken);
 
     // 생성된 토큰들 반환
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, payload };
   }
 
   // Refresh Token을 사용하여 새로운 Access Token을 발급하는 메서드

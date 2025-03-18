@@ -24,6 +24,13 @@ export class Users {
   @Column()
   password: string;
 
+  @Column('varchar', {
+    length: 20,
+    comment: '권한그룹',
+    nullable: true,
+  })
+  userGroup: string;
+
   @Column({ nullable: true })
   refreshToken: string; // Refresh Token 저장
 

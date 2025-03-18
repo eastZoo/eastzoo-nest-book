@@ -72,25 +72,21 @@ export class AuthController {
           .json(responseObj.fail('이메일과 비밀번호를 모두 입력해주세요.'));
       }
 
-      const { accessToken, refreshToken } = await this.authService.login(
-        body.email,
-        body.password,
-      );
+      const { accessToken, refreshToken, payload } =
+        await this.authService.login(body.email, body.password);
 
       // Refresh Token을 보안 쿠키로 설정
-      res.cookie(
-        `${process.env.REFRESH_TOKEN_NAME}-refresh-token`,
-        refreshToken,
-        {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
-          maxAge: Number(process.env.JWT_REFRESH_EXPIRES), // 7일 유효기간
-        },
-      );
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        maxAge: Number(process.env.JWT_REFRESH_EXPIRES), // 7일 유효기간
+      });
 
       // 성공 응답 반환
-      return res.json(responseObj.success({ accessToken }, '로그인 성공'));
+      return res.json(
+        responseObj.success({ accessToken, user: payload }, '로그인 성공'),
+      );
     } catch (error) {
       console.error('🚨 로그인 실패:', error);
 

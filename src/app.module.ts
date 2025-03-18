@@ -12,13 +12,14 @@ import { AppService } from './app.service';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { UserModule } from './app/user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { PermissionModule } from './app/permission/permission.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-      validate,
+      isGlobal: true, // 모든 모듈에서 사용 가능
+      envFilePath: `.env.${process.env.NODE_ENV}`, // 환경 변수 파일 경로
+      validate, // 환경 변수 유효성 검사
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -40,6 +41,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [
